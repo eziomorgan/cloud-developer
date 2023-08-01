@@ -60,7 +60,6 @@ import { Car, cars as cars_list } from './cars';
     async ( req: Request, res: Response ) => {
 
       const { name } = req.body;
-
       if ( !name ) {
         return res.status(400)
                   .send(`name is required`);
@@ -72,13 +71,54 @@ import { Car, cars as cars_list } from './cars';
 
   // @TODO Add an endpoint to GET a list of cars
   // it should be filterable by make with a query paramater
+  app.get("/cars/", (req: Request, res: Response) => {
+    let { make } = req.query;
+    if(!make) {
+      return res.status(200).send(cars);
+    }
+    const foundCars = cars.filter((car) => car.make === make)
+    if(foundCars.length === 0){
+      return res.status(404).send('no car matching the make provided');
+    } else {
+      return res.status(200).send(foundCars);
+    }
+  })
 
   // @TODO Add an endpoint to get a specific car
   // it should require id
   // it should fail gracefully if no matching car is found
+  app.get("/car/", (req: Request, res: Response) => {
+    let {id} = req.query;
+    if(!id){
+      return res.status(400).send('id is required');
+    }
+    const parsedId = parseInt(id as string, 10);
+    const foundCar = cars.find((car) => car.id === parsedId);
+    if(!foundCar){
+      return res.status(404).send('no car matching the id provided');
+    } else{
+      return res.status(200).send(foundCar);
+    }
+  })
 
   /// @TODO Add an endpoint to post a new car to our list
   // it should require id, type, model, and cost
+  app.post("/car/", (req: Request, res: Response) => {
+    let { id, type, model, cost, make} = req.body;
+    if(!id || !type || !model || !cost){
+      return res.status(400).send('require id, type, model and cost');
+    }
+    const newCar = {
+      id : parseInt(id as string, 10),
+      type : type,
+      model : model,
+      make : make,
+      cost : parseFloat(cost as string)
+    }
+    cars.push(newCar);
+    console.log(newCar);
+    return res.status(201).send('new car added');
+  })
 
   // Start the Server
   app.listen( port, () => {
